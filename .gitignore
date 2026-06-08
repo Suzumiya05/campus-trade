@@ -31,3 +31,27 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# === Java / Spring Boot ===
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+.idea/
+*.iml
+*.log
+.mvn/
+mvnw
+mvnw.cmd
+# === 前端 ===
+node_modules/
+dist/
+.DS_Store
+# === 敏感配置（根据你的实际情况选择）===
+# 如果你的 application.yml / application.properties 里写了数据库密码、阿里云密钥等，
+# 请把真实配置文件加入忽略，只上传一个脱敏的模板（如 application.yml.example）
+# *.properties
+# *.yml
+# *.yaml
