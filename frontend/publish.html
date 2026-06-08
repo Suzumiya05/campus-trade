@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发布商品 - 校园二手交易平台</title>
+    <!-- 引入 Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <!-- 引入 Axios CDN -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        :root {
+            --bg: #f0f4f8;
+            --card-bg: #ffffff;
+            --primary: #4a6cf7;
+            --primary-hover: #3651d5;
+            --danger: #e8553d;
+            --text: #2d3748;
+            --text-secondary: #718096;
+            --text-light: #a0aec0;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.10), 0 4px 10px rgba(0,0,0,0.05);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-sans: 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+            'Helvetica Neue', Arial, sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 30px 20px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        /* 页面容器，限制最大宽度 */
+        .page-wrapper {
+            width: 100%;
+            max-width: 680px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        /* 顶部导航条（简约版） */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 1.2rem;
+            padding: 8px 0;
+        }
+        .top-nav .back-icon {
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--primary);
+            text-decoration: none;
+            user-select: none;
+        }
+        .top-nav .back-icon:hover { transform: scale(1.1); }
+        /* 主卡片 */
+        .publish-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 32px 28px 36px;
+            border: 1px solid transparent;
+            transition: var(--transition);
+        }
+        .publish-card:hover { border-color: #e8ecf4; }
+        .card-top-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #4a6cf7 0%, #6d8cfb 100%);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            margin: -32px -28px 28px;
+        }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        /* 表单网格 */
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .input-group label {
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+        }
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-family: var(--font-sans);
+            background: #fafbfc;
+            color: var(--text);
+            transition: var(--transition);
+            outline: none;
+            resize: vertical;
+        }
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(74,108,247,0.1);
+        }
+        .input-group textarea {
+            min-height: 80px;
+        }
+        /* 双列布局（在小屏上堆叠） */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 500px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+        /* 错误提示 */
+        .error-message {
+            background: #fff5f5;
+            color: var(--danger);
+            border: 1px solid #fed7d7;
+            padding: 10px 14px;
+            border-radius: var(--radius);
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity:0; transform:translateY(-3px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+        /* 提交按钮 */
+        .btn-submit {
+            width: 100%;
+            padding: 14px 24px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 28px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            margin-top: 12px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-submit:hover:not(:disabled) {
+            background: var(--primary-hover);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        .btn-submit:active:not(:disabled) { transform: scale(0.98); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        /* 按钮加载旋转 */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        /* 成功提示 */
+        .success-toast {
+            background: #e6f9f0;
+            color: #1a8a4a;
+            border: 1px solid #b7ebd0;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .form-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.82rem;
+            color: var(--text-light);
+        }
+        .form-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .form-footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div class="page-wrapper">
+        <!-- 简易导航 -->
+        <div class="top-nav">
+            <a href="index.html" class="back-icon" title="返回首页">←</a>
+            <span>校园二手交易平台 · 发布商品</span>
+        </div>
+
+        <!-- 发布卡片 -->
+        <div class="publish-card">
+            <div class="card-top-bar"></div>
+            <h2 class="card-title">
+                <span>📦</span> 发布新商品
+            </h2>
+
+            <!-- 成功/错误消息 -->
+            <div v-if="successMessage" class="success-toast">
+                ✅ {{ successMessage }}
+            </div>
+            <div v-if="errorMessage" class="error-message">
+                ⚠️ {{ errorMessage }}
+            </div>
+
+            <form @submit.prevent="submitForm" class="form-grid">
+                <!-- 标题 -->
+                <div class="input-group">
+                    <label for="title">商品标题 <span style="color:#e53e3e;">*</span></label>
+                    <input
+                            id="title"
+                            v-model="form.title"
+                            type="text"
+                            placeholder="请输入商品标题"
+                            required
+                    />
+                </div>
+
+                <!-- 描述 -->
+                <div class="input-group">
+                    <label for="description">商品描述</label>
+                    <textarea
+                            id="description"
+                            v-model="form.description"
+                            placeholder="描述一下商品新旧程度、使用感受等..."
+                    ></textarea>
+                </div>
+
+                <!-- 双列行 -->
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="category">类别 <span style="color:#e53e3e;">*</span></label>
+                        <select id="category" v-model="form.category" required>
+                            <option value="">请选择类别</option>
+                            <option value="数码电子">数码电子</option>
+                            <option value="生活用品">生活用品</option>
+                            <option value="教材教辅">教材教辅</option>
+                            <option value="运动户外">运动户外</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="condition_type">成色 <span style="color:#e53e3e;">*</span></label>
+                        <select id="condition_type" v-model="form.condition_type" required>
+                            <option value="">请选择成色</option>
+                            <option value="全新">全新</option>
+                            <option value="轻微使用">轻微使用</option>
+                            <option value="明显痕迹">明显痕迹</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 双列行 -->
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="price">售价(¥) <span style="color:#e53e3e;">*</span></label>
+                        <input
+                                id="price"
+                                v-model.number="form.price"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                required
+                        />
+                    </div>
+                    <div class="input-group">
+                        <label for="original_price">原价(¥)</label>
+                        <input
+                                id="original_price"
+                                v-model.number="form.original_price"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="选填"
+                        />
+                    </div>
+                </div>
+
+                <!-- 双列行 -->
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="trade_type">交易方式</label>
+                        <select id="trade_type" v-model="form.trade_type">
+                            <option value="均可">均可</option>
+                            <option value="自提">自提</option>
+                            <option value="邮寄">邮寄</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="seller_phone">联系电话</label>
+                        <input
+                                id="seller_phone"
+                                v-model="form.seller_phone"
+                                type="tel"
+                                placeholder="选填"
+                        />
+                    </div>
+                </div>
+
+                <!-- 图片链接 -->
+                <div class="input-group">
+                    <label for="images">商品图片URL</label>
+                    <input
+                            id="images"
+                            v-model="form.images"
+                            type="text"
+                            placeholder="多个链接用逗号隔开，例如 http://img1.jpg,http://img2.jpg"
+                    />
+                </div>
+
+                <!-- 状态与浏览量（隐藏字段或只读） -->
+                <input type="hidden" v-model="form.status" />
+                <input type="hidden" v-model.number="form.view_count" />
+
+                <!-- 提交按钮 -->
+                <button
+                        class="btn-submit"
+                        :disabled="submitting"
+                        type="submit"
+                >
+                    <span v-if="submitting" class="spinner"></span>
+                    {{ submitting ? '发布中...' : '立即发布' }}
+                </button>
+            </form>
+
+            <div class="form-footer">
+                返回 <a href="index.html">商品列表</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const { createApp } = Vue;
+
+        // 设置 Axios 全局 withCredentials，携带 Cookie
+        axios.defaults.withCredentials = true;
+
+        const app = createApp({
+            data() {
+                return {
+                    form: {
+                        title: '',
+                        description: '',
+                        category: '',
+                        price: null,
+                        original_price: null,
+                        images: '',
+                        condition_type: '',
+                        trade_type: '均可',       // 默认“均可”
+                        seller_phone: '',
+                        status: '在售',           // 默认“在售”
+                        view_count: 0             // 默认0
+                    },
+                    submitting: false,
+                    errorMessage: '',
+                    successMessage: '',
+                };
+            },
+            methods: {
+                async submitForm() {
+                    // 清除之前的提示
+                    this.errorMessage = '';
+                    this.successMessage = '';
+
+                    // 基础校验
+                    if (!this.form.title.trim()) {
+                        this.errorMessage = '请输入商品标题';
+                        return;
+                    }
+                    if (!this.form.category) {
+                        this.errorMessage = '请选择商品类别';
+                        return;
+                    }
+                    if (!this.form.condition_type) {
+                        this.errorMessage = '请选择商品成色';
+                        return;
+                    }
+                    if (this.form.price === null || this.form.price === '' || isNaN(this.form.price)) {
+                        this.errorMessage = '请输入有效的售价';
+                        return;
+                    }
+                    if (Number(this.form.price) < 0) {
+                        this.errorMessage = '售价不能为负数';
+                        return;
+                    }
+
+                    this.submitting = true;
+
+                    // 构造请求体（确保 price 和 original_price 为数字）
+                    const payload = {
+                        ...this.form,
+                        price: parseFloat(this.form.price),
+                        original_price: this.form.original_price ? parseFloat(this.form.original_price) : null,
+                        view_count: parseInt(this.form.view_count) || 0,
+                        images: this.form.images.trim() || '',
+                        description: this.form.description.trim(),
+                        seller_phone: this.form.seller_phone.trim(),
+                        title: this.form.title.trim(),
+                    };
+
+                    try {
+                        const response = await axios.post(
+                            'http://localhost:8080/products/release',
+                            payload,
+                            {
+                                headers: { 'Content-Type': 'application/json' },
+                                timeout: 15000,
+                            }
+                        );
+
+                        const body = response.data;
+                        if (body && body.code === 200) {
+                            this.successMessage = body.message || '商品发布成功';
+                            // 1秒后跳转回首页
+                            setTimeout(() => {
+                                window.location.href = 'index.html';
+                            }, 1000);
+                        } else {
+                            this.errorMessage = body?.message || '发布失败，请稍后重试';
+                        }
+                    } catch (err) {
+                        console.error('发布商品失败：', err);
+                        if (err.code === 'ECONNABORTED') {
+                            this.errorMessage = '请求超时，请检查网络或后端服务';
+                        } else if (err.message && err.message.includes('Network')) {
+                            this.errorMessage = '网络连接失败，请确认后端服务已启动';
+                        } else if (err.response) {
+                            const status = err.response.status;
+                            if (status === 401) {
+                                this.errorMessage = '请先登录后再发布商品';
+                            } else if (status === 403) {
+                                this.errorMessage = '没有发布权限';
+                            } else {
+                                this.errorMessage = `服务器错误（${status}）：${err.response.statusText || '未知错误'}`;
+                            }
+                        } else {
+                            this.errorMessage = '请求发送失败：' + (err.message || '未知错误');
+                        }
+                    } finally {
+                        this.submitting = false;
+                    }
+                }
+            }
+        });
+
+        app.mount('#app');
+    })();
+</script>
+</body>
+</html>

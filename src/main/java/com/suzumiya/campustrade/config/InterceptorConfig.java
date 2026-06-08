@@ -1,0 +1,17 @@
+package com.suzumiya.campustrade.config;
+
+import com.suzumiya.campustrade.interceptor.LoginInterceptor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class InterceptorConfig implements WebMvcConfigurer {
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        //用参数 InterceptorRegistry 来注册LoginInterceptor
+        //链式调用 .addPathPatterns("/**") 拦截所有请求,接着调用 .excludePathPatterns(...) 排除掉不需要登录就能访问的路径
+        registry.addInterceptor(new LoginInterceptor()).addPathPatterns("/**").excludePathPatterns("/users/login").
+        excludePathPatterns("/users/register").excludePathPatterns("/static/**").excludePathPatterns("/products");
+    }
+}
