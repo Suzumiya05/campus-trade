@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 校园二手交易平台</title>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <!-- Axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        :root {
+            --bg: #f0f4f8;
+            --card-bg: #ffffff;
+            --primary: #4a6cf7;
+            --primary-hover: #3651d5;
+            --price: #e8553d;
+            --text: #2d3748;
+            --text-secondary: #718096;
+            --text-light: #a0aec0;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.10), 0 4px 10px rgba(0,0,0,0.05);
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-sans: 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+            'Helvetica Neue', Arial, sans-serif;
+            --danger: #e53e3e;
+            --success: #38a169;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ========== Header ========== */
+        .app-header {
+            background: linear-gradient(135deg, #4a6cf7 0%, #3b56d4 40%, #5b7cf9 100%);
+            color: #fff;
+            padding: 20px 0;
+            box-shadow: 0 4px 20px rgba(74,108,247,0.25);
+        }
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header-logo {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 1.5rem; font-weight: 700; letter-spacing: 0.3px;
+            text-decoration: none; color: #fff; user-select: none;
+        }
+        .header-logo .logo-icon {
+            width: 42px; height: 42px; background: rgba(255,255,255,0.2);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; backdrop-filter: blur(4px);
+        }
+        .back-link {
+            color: #fff; text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 18px; border-radius: 20px;
+            font-weight: 500; font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .back-link:hover { background: rgba(255,255,255,0.35); }
+
+        /* ========== Main / Card ========== */
+        .profile-container {
+            max-width: 560px;
+            margin: 40px auto;
+            padding: 0 20px 60px;
+        }
+        .profile-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        .card-banner {
+            background: linear-gradient(135deg, #4a6cf7 0%, #6d8cfb 100%);
+            color: #fff;
+            padding: 34px 28px 28px;
+            text-align: center;
+        }
+        .avatar-large {
+            width: 84px; height: 84px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            margin: 0 auto 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.2rem; font-weight: 700;
+            backdrop-filter: blur(4px);
+            border: 3px solid rgba(255,255,255,0.4);
+        }
+        .card-banner h1 {
+            font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.3px;
+        }
+        .card-banner .subtitle {
+            font-size: 0.88rem; opacity: 0.88;
+        }
+        .card-body { padding: 28px; }
+
+        .form-group { margin-bottom: 22px; }
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.98rem;
+            color: var(--text);
+            background: #f7fafc;
+            transition: var(--transition);
+            outline: none;
+            font-family: var(--font-sans);
+        }
+        .form-input:focus {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(74,108,247,0.12);
+        }
+        .form-input:read-only {
+            background: #f7fafc;
+            color: var(--text-secondary);
+            cursor: default;
+            border-color: var(--border);
+        }
+        .form-input:read-only:focus {
+            border-color: var(--border);
+            box-shadow: none;
+            background: #f7fafc;
+        }
+        .form-input.is-editable {
+            background: #fff;
+            color: var(--text);
+            cursor: text;
+        }
+        .field-error {
+            color: var(--danger);
+            font-size: 0.82rem;
+            margin-top: 6px;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 28px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 11px 24px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: var(--transition);
+            font-family: var(--font-sans);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex: 1;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        .btn-primary:disabled { opacity:0.55; cursor:not-allowed; transform:none; box-shadow:none; }
+        .btn-secondary {
+            background: #f7fafc;
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        .btn-secondary:disabled { opacity:0.55; cursor:not-allowed; }
+
+        /* ========== Toast ========== */
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            padding: 12px 26px;
+            border-radius: 24px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 0.92rem;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.success { background: var(--success); }
+        .toast.error   { background: var(--danger); }
+
+        /* ========== 状态占位 ========== */
+        .state-box {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+        .state-box .icon { font-size: 3rem; margin-bottom: 12px; display: block; }
+        .state-box .text { font-size: 1.05rem; color: var(--text); margin-bottom: 6px; }
+        .state-box .sub  { font-size: 0.88rem; color: var(--text-light); }
+        .loading-spinner {
+            display: inline-block; width: 40px; height: 40px;
+            border: 4px solid var(--border); border-top-color: var(--primary);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .footer-back {
+            text-align: center;
+            margin-top: 24px;
+        }
+        .footer-back a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .footer-back a:hover { color: var(--primary); }
+
+        .go-login-link {
+            display: inline-block;
+            margin-top: 16px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.92rem;
+        }
+        .go-login-link:hover { text-decoration: underline; }
+
+        @media (max-width: 640px) {
+            .header-logo { font-size: 1.2rem; }
+            .header-logo .logo-icon { width:34px; height:34px; font-size:1.2rem; border-radius:8px; }
+            .card-body { padding: 20px; }
+            .card-banner { padding: 24px 20px; }
+            .avatar-large { width: 64px; height: 64px; font-size: 1.8rem; }
+            .profile-container { margin: 24px auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-inner">
+            <a href="index.html" class="header-logo">
+                <span class="logo-icon">🎓</span>
+                <span>校园二手交易平台</span>
+            </a>
+            <a href="index.html" class="back-link">← 返回首页</a>
+        </div>
+    </header>
+
+    <main class="profile-container">
+        <!-- 加载中 -->
+        <div v-if="loading" class="state-box">
+            <span class="icon"><span class="loading-spinner"></span></span>
+            <p class="text">正在加载用户信息...</p>
+        </div>
+
+        <!-- 加载失败 / 未登录 -->
+        <div v-else-if="loadError" class="state-box">
+            <span class="icon">🔒</span>
+            <p class="text">{{ loadError }}</p>
+            <p class="sub">请先登录后再访问个人中心</p>
+            <a href="login.html" class="go-login-link">前往登录 →</a>
+        </div>
+
+        <!-- 用户信息卡片 -->
+        <div v-else-if="userInfo" class="profile-card">
+            <div class="card-banner">
+                <div class="avatar-large">
+                    {{ (userInfo.nickname || userInfo.username || '?')[0].toUpperCase() }}
+                </div>
+                <h1>个人中心</h1>
+                <div class="subtitle">管理你的账户信息</div>
+            </div>
+
+            <div class="card-body">
+                <!-- 用户名（只读，不可修改） -->
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input
+                            type="text"
+                            class="form-input"
+                            :value="userInfo.username"
+                            readonly
+                    >
+                </div>
+
+                <!-- 昵称 -->
+                <div class="form-group">
+                    <label class="form-label">昵称</label>
+                    <input
+                            type="text"
+                            class="form-input"
+                            :class="{ 'is-editable': editing }"
+                            v-model.trim="editForm.nickname"
+                            :readonly="!editing"
+                            placeholder="请输入昵称"
+                            maxlength="30"
+                    >
+                    <div v-if="errors.nickname" class="field-error">{{ errors.nickname }}</div>
+                </div>
+
+                <!-- 手机号 -->
+                <div class="form-group">
+                    <label class="form-label">手机号</label>
+                    <input
+                            type="text"
+                            class="form-input"
+                            :class="{ 'is-editable': editing }"
+                            v-model.trim="editForm.phone"
+                            :readonly="!editing"
+                            placeholder="请输入手机号"
+                            maxlength="20"
+                    >
+                </div>
+
+                <!-- 操作区 -->
+                <div class="action-row">
+                    <button v-if="!editing" class="btn btn-primary" @click="enterEdit">
+                        ✎ 编辑
+                    </button>
+                    <template v-else>
+                        <button class="btn btn-primary" :disabled="submitting" @click="saveChanges">
+                            {{ submitting ? '保存中...' : '✓ 保存' }}
+                        </button>
+                        <button class="btn btn-secondary" :disabled="submitting" @click="cancelEdit">
+                            ✕ 取消
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部返回首页 -->
+        <div class="footer-back">
+            <a href="index.html">← 返回首页</a>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div class="toast" :class="[toast.type, { show: toast.show }]">{{ toast.message }}</div>
+</div>
+
+<script>
+    const BASE_URL = 'http://localhost:8080';
+    // 全局携带 Cookie
+    axios.defaults.withCredentials = true;
+
+    (function() {
+        const { createApp } = Vue;
+
+        const app = createApp({
+            data() {
+                return {
+                    userInfo: null,
+                    loading: true,
+                    loadError: null,
+
+                    // 编辑相关
+                    editing: false,
+                    submitting: false,
+                    editForm: {
+                        nickname: '',
+                        phone: ''
+                    },
+                    errors: {
+                        nickname: ''
+                    },
+
+                    // toast
+                    toast: {
+                        show: false,
+                        message: '',
+                        type: 'success',
+                        timer: null
+                    }
+                };
+            },
+            methods: {
+                /** 2.1 拉取当前用户信息 */
+                async fetchUserInfo() {
+                    this.loading = true;
+                    this.loadError = null;
+                    try {
+                        const resp = await axios.get(`${BASE_URL}/users/me`, { timeout: 8000 });
+                        const body = resp.data;
+                        if (body && body.code === 200 && body.data) {
+                            this.userInfo = body.data;
+                        } else {
+                            this.userInfo = null;
+                            this.loadError = (body && body.message) || '无法获取用户信息';
+                        }
+                    } catch (e) {
+                        console.error('获取用户信息失败:', e);
+                        this.userInfo = null;
+                        if (e.response && (e.response.status === 401 || e.response.status === 403)) {
+                            this.loadError = '未登录或登录已过期';
+                        } else if (e.code === 'ECONNABORTED') {
+                            this.loadError = '请求超时，请检查网络';
+                        } else if (e.message && e.message.includes('Network')) {
+                            this.loadError = '网络连接失败，请确认后端服务已启动';
+                        } else {
+                            this.loadError = '获取用户信息失败，请稍后重试';
+                        }
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                /** 2.3 进入编辑模式：把当前值复制到 editForm */
+                enterEdit() {
+                    this.editForm.nickname = this.userInfo.nickname || '';
+                    this.editForm.phone = this.userInfo.phone || '';
+                    this.errors.nickname = '';
+                    this.editing = true;
+                },
+
+                /** 2.3 取消编辑 */
+                cancelEdit() {
+                    this.editing = false;
+                    this.errors.nickname = '';
+                },
+
+                /** 2.4 前端校验 */
+                validate() {
+                    let ok = true;
+                    this.errors.nickname = '';
+                    const nickname = (this.editForm.nickname || '').trim();
+                    this.editForm.nickname = nickname;
+                    if (!nickname) {
+                        this.errors.nickname = '昵称不能为空';
+                        ok = false;
+                    }
+                    return ok;
+                },
+
+                /** 2.4 提交修改 */
+                async saveChanges() {
+                    if (!this.validate()) return;
+                    if (this.submitting) return;
+                    this.submitting = true;
+
+                    const payload = {
+                        id: this.userInfo.id,
+                        nickname: this.editForm.nickname,
+                        phone: this.editForm.phone
+                    };
+
+                    try {
+                        const resp = await axios.put(
+                            `${BASE_URL}/users/${this.userInfo.id}`,
+                            payload,
+                            { timeout: 8000 }
+                        );
+                        const body = resp.data;
+                        if (body && body.code === 200) {
+                            // 同步更新本地 userInfo
+                            this.userInfo.nickname = this.editForm.nickname;
+                            this.userInfo.phone = this.editForm.phone;
+                            this.editing = false;
+                            this.showToast('修改成功', 'success');
+                        } else {
+                            const msg = (body && body.message) || '修改失败';
+                            this.showToast(msg, 'error');
+                        }
+                    } catch (e) {
+                        console.error('修改用户信息失败:', e);
+                        const msg =
+                            (e.response && e.response.data && e.response.data.message) ||
+                            e.message ||
+                            '修改失败，请稍后重试';
+                        this.showToast(msg, 'error');
+                    } finally {
+                        this.submitting = false;
+                    }
+                },
+
+                /** Toast 提示 */
+                showToast(message, type = 'success') {
+                    if (this.toast.timer) clearTimeout(this.toast.timer);
+                    this.toast.message = message;
+                    this.toast.type = type;
+                    this.toast.show = true;
+                    this.toast.timer = setTimeout(() => {
+                        this.toast.show = false;
+                    }, 2500);
+                }
+            },
+            mounted() {
+                this.fetchUserInfo();
+            }
+        });
+
+        app.mount('#app');
+    })();
+</script>
+</body>
+</html>

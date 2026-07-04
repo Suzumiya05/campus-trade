@@ -1,0 +1,123 @@
+你的项目代码已经比较干净，现在需要做的是**扫尾清理 + 注释规范化 + 版本控制**。下面按顺序给出操作步骤，你照着做就能把项目整理好并推送到 GitHub。
+
+---
+
+## 1. 删除无用的测试接口
+
+**目标文件**：`UserController.java`
+
+- 删除以下被注释的代码块（包括注释行）：
+  ```java
+  //测试获取uid
+  //@GetMapping("/testGetId")
+  //public R<Long> getUserId(HttpServletRequest request){
+  //    Long userId = (Long) request.getAttribute("userId");
+  //    if (userId == null) {
+  //        return R.error("用户未登录，请先登录");
+  //    }
+  //    return R.ok(userId);
+  //}
+  ```
+- 确保删除后文件其他部分格式整齐，不要留下多余的空行或注释碎片。
+
+---
+
+## 2. 补充和完善关键注释
+
+现在你项目中一些地方注释已经很不错了，但仍有部分缺少必要说明。建议重点补充以下内容（不需要写代码，只给你方向）：
+
+### 2.1 Controller 层
+- **`ProductController`**：
+  - 每个方法上方用简短 `//` 说明功能，例如 `// 分页查询商品列表`、`// 按分类分页`、`// 发布商品（需登录）`。
+  - `searchProduct` 方法缺少 `public` 修饰符？实际代码里有 `R<Page<Product>> searchProduct(...)`，前面没有 `public`，虽然默认是 `package-private`，但 Spring 也能注入，建议加上 `public` 明确访问修饰符。
+- **`UserController`**：
+  - 同样的，为每个方法添加一句功能说明，如 `// 用户注册`、`// 用户登录`、`// 获取当前登录用户信息` 等。
+
+### 2.2 Service 层
+- `ProductService` 和 `UserService` 接口中，已有部分注释，但可以再完善接口方法的描述，尤其是 `register` 和 `login`，说明参数含义和返回值。
+- `UserServiceImpl` 中的 `register` 方法可以注明“校验已由 Controller 通过 @Valid 完成，此处只做业务查重”。
+
+### 2.3 实体类和 DTO
+- `Product` 和 `User` 中有些字段添加了校验注解，可以简单注释哪些是必填、哪些是选填。
+- `LoginRequest`、`UpdateUserRequest` 加一句注释说明用途。
+
+### 2.4 配置类
+- `CorsConfig` 注明允许的来源地址，并说明当前用于本地开发。
+- `InterceptorConfig` 注释写清楚哪些路径被排除，以及为什么（例如“商品浏览不需要登录”）。
+- `MybatisPlusConfig` 已有注释，可以保留。
+
+### 2.5 异常类
+- `BusinessException` 类上的注释可以调整为更正式的语言，删除内部残留的“//删除子类的 message 字段”说明，因为代码已经修改完毕，这类开发备注应该清理掉。
+- `GlobalExceptionHandler` 中各方法的注释确保准确（你已做得不错）。
+
+---
+
+## 3. 检查代码风格一致性
+
+- 所有 Java 文件：检查 `@Autowired`、`@Service` 等注解的导入是否正确，多余的 import 可以删除（IDEA 有“Optimize Imports”功能，快捷键 `Ctrl+Alt+O`）。
+- 检查分页参数校验注解的格式是否统一（比如 `@Min` 和 `@Max` 是否都放在了同一行）。
+- 确认 `R` 类中新增的 `error(int code, String message)` 方法可用，且全局异常处理器都在使用它。
+
+---
+
+## 4. 本地 Git 初始化与首次提交
+
+如果项目之前没有用过 Git，按以下步骤操作：
+
+1. **打开终端，进入项目根目录**：`cd E:\Java\jCode\campus-trade`
+2. **初始化 Git 仓库**：`git init`
+3. **创建 `.gitignore` 文件**（告诉 Git 忽略哪些文件）：
+   - 在根目录新建文本文件 `.gitignore`
+   - 内容至少包含：
+     ```
+     # Maven ignore
+     target/
+     *.class
+     *.jar
+     *.war
+     # IDE ignore
+     .idea/
+     *.iml
+     # OS ignore
+     .DS_Store
+     Thumbs.db
+     # Logs ignore
+     *.log
+     # Others
+     application-dev.yml   # 如果你有本地测试配置文件，可以忽略
+     ```
+   - **特别提醒**：你的 `application.yml` 中写了数据库密码，如果仓库是公开的，建议不要把真实密码提交上去。可以改为使用环境变量或单独的私有配置文件，但作为学习项目暂时直接忽略 `application.yml` 也行。更安全的做法是：将 `application.yml` 留在本地，不提交，并创建一个 `application-example.yml` 作为模板，里面密码写 `your_password`。不过你现在可以先提交，后续再处理，记住这是风险点。
+
+4. **添加所有文件到暂存区**：`git add .`
+5. **执行首次提交**：`git commit -m "feat: 完成校园二手交易平台基础骨架，包括用户、商品、搜索、异常处理、参数校验等"`
+
+---
+
+## 5. 关联远程仓库并推送
+
+1. **在 GitHub 上创建一个新仓库**（不要勾选生成 README，因为本地已有代码）。
+2. **复制远程仓库的 HTTPS 或 SSH 地址**。
+3. **在终端执行**：
+   ```bash
+   git remote add origin <你的远程仓库地址>
+   git branch -M main   # 如果默认分支是 main
+   git push -u origin main
+   ```
+4. **如果推送失败**，可能需要先拉取或确认权限，按提示操作即可。
+
+推送成功后，去 GitHub 仓库页面刷新，应该能看到你的代码。
+
+---
+
+## 6. 提交后检查清单
+
+- [ ] `UserController` 中无注释掉的测试代码。
+- [ ] 每个类、关键方法都有合理的注释。
+- [ ] `ProductController` 中 `searchProduct` 等方法加上了 `public`。
+- [ ] `BusinessException` 类顶部的遗留注释已清理。
+- [ ] `.gitignore` 已排除 `target/` 等文件。
+- [ ] GitHub 上代码可见，且不包含敏感信息（或者至少已知风险）。
+
+---
+
+完成这些步骤后，你的项目就达到了一个阶段性整洁版本，方便后续继续迭代或用来面试演示。现在就开始动手吧，有任何一步卡住都可以随时问我。

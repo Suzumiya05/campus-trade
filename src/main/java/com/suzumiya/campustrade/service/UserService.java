@@ -22,7 +22,7 @@ public interface UserService {
     //分页查询
     Page<User> getByPage(Integer current, Integer size);
     //用户注册
-    R<User> register(User user);
+    R<Void> register(User user);
     //登录
     R<User> login(String username, String password, HttpSession session);
 }

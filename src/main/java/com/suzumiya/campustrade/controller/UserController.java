@@ -1,16 +1,21 @@
 package com.suzumiya.campustrade.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.suzumiya.campustrade.dto.LoginRequest;
+import com.suzumiya.campustrade.dto.UpdateUserRequest;
 import com.suzumiya.campustrade.entity.R;
 import com.suzumiya.campustrade.entity.User;
 import com.suzumiya.campustrade.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -43,33 +48,32 @@ public class UserController {
         userService.deleteUser(id);
         return R.ok();
     }
-    //修改用户
+    //修改用户信息
     @PutMapping("/{id}")
-    public R<Void> update(@PathVariable long id, @RequestBody User user){
-        user.setId(id);
+    public R<Void> update(HttpServletRequest request, @PathVariable long id,
+                          @Valid @RequestBody UpdateUserRequest updateUserRequest){
+        //全局权限校验
+        if (request.getAttribute("userId") == null) return R.error("未登录");
+        if ((long)request.getAttribute("userId") != id) return R.error("无权限修改他人信息");
+
+        User user = userService.getById(id);
+        user.setNickname(updateUserRequest.getNickname());
+        user.setPhone(updateUserRequest.getPhone());
         userService.updateUser(user);
         return R.ok();
     }
     //注册
     @PostMapping("/register")
-    public R<User> register(@RequestBody User user){
+    public R<Void> register(@Valid @RequestBody User user){
         return userService.register(user);
     }
     //登录
     @PostMapping("/login")
-    public R<User> login(@RequestBody User user, HttpServletRequest request){
+    public R<User> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request){
         HttpSession session = request.getSession();
-        return userService.login(user.getUsername(), user.getPassword(), session);
+        return userService.login(loginRequest.getUsername(), loginRequest.getPassword(), session);
     }
-    //测试获取uid
-//    @GetMapping("/testGetId")
-//    public R<Long> getUserId(HttpServletRequest request){
-//        Long userId = (Long) request.getAttribute("userId");
-//        if (userId == null) {
-//            return R.error("用户未登录，请先登录");
-//        }
-//        return R.ok(userId);
-//    }
+    //获取当前用户信息
     @GetMapping("/me")  // 完整路径：/users/me
     public R<User> getCurrentUser(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");

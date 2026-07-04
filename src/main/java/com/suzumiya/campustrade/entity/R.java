@@ -26,4 +26,11 @@ public class R<T> {
         r.message = message;
         return r;
     }
+
+    public static <T> R<T> error(int code, String message) {
+        R<T> r = new R<>();
+        r.code = code;
+        r.message = message;
+        return r;
+    }
 }

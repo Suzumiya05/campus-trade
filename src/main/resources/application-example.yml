@@ -3,7 +3,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/second_hand
     username: root
-    password: df3oct10
+    password: your_password
   mvc:
     throw-exception-if-no-handler-found: true
   web:
