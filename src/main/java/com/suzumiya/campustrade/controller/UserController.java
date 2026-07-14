@@ -74,13 +74,13 @@ public class UserController {
         return userService.login(loginRequest.getUsername(), loginRequest.getPassword(), session);
     }
     //获取当前用户信息
-    @GetMapping("/me")  // 完整路径：/users/me
+    @GetMapping("/me")  //完整路径：/users/me
     public R<User> getCurrentUser(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         if (userId == null) {
             return R.error("用户未登录");
         }
-        // 根据 userId 查用户基本信息（用户名、昵称、头像等）
+        //根据 userId 查用户基本信息（用户名、昵称、头像等）
         User user = userService.getById(userId);
         user.setPassword(null);
         return R.ok(user);

@@ -1,11 +1,15 @@
-package com.suzumiya.campustrade.service;
+package com.suzumiya.campustrade.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.suzumiya.campustrade.entity.AuditResult;
 import com.suzumiya.campustrade.entity.Product;
 import com.suzumiya.campustrade.entity.User;
+import com.suzumiya.campustrade.exception.BusinessException;
 import com.suzumiya.campustrade.mapper.ProductMapper;
 import com.suzumiya.campustrade.mapper.UserMapper;
+import com.suzumiya.campustrade.service.ContentAuditService;
+import com.suzumiya.campustrade.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +21,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private ContentAuditService contentAuditService;
 
     //分类+分页
     @Override
@@ -42,6 +49,12 @@ public class ProductServiceImpl implements ProductService {
         //取昵称(controller中获取userId传过来)
         User user = userMapper.selectById(userId);
         product.setSellerName(user.getNickname());
+
+        // 先经过AI审核
+        AuditResult result = contentAuditService.audit(product);
+        if (!result.isPassed()) {
+            throw new BusinessException(400, result.getReason());
+        }
         productMapper.insert(product);
     }
 

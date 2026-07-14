@@ -1,4 +1,4 @@
-package com.suzumiya.campustrade.service;
+package com.suzumiya.campustrade.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -6,6 +6,7 @@ import com.suzumiya.campustrade.entity.R;
 import com.suzumiya.campustrade.entity.User;
 import com.suzumiya.campustrade.exception.BusinessException;
 import com.suzumiya.campustrade.mapper.UserMapper;
+import com.suzumiya.campustrade.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
 
